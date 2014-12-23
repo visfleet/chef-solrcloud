@@ -36,6 +36,7 @@ node['solrcloud']['collections'].each do |collection_name, options|
     auto_add_replicas options['auto_add_replicas']
     context_path options['context_path']
     action options['action']
+    zkhost options['zkhost']
   end
 
 end
