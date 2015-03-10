@@ -25,13 +25,13 @@ include_recipe 'solrcloud::java'
 %w(patch gcc).each do |pkg|
   package pkg do
     action :nothing
-    retry 2
+    retries 2
   end.run_action(:install)
 end
 
 chef_gem 'zk' do
   action :nothing
-  retry 2
+  retries 2
 end.run_action(:install)
 
 require 'zk'
