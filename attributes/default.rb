@@ -1,11 +1,14 @@
 
+default['solrcloud']['install_zk_gem']  = true
 default['solrcloud']['install_java']  = true
 default['solrcloud']['user']          = 'solr'
 default['solrcloud']['group']         = 'solr'
 default['solrcloud']['user_home']     = nil
 default['solrcloud']['setup_user']    = true # ideally it must be set to false for Production environment and advised to manage solr user via different cookbook
 
-default['solrcloud']['version']       = '4.10.2'
+default['solrcloud']['version']       = '5.1.0'
+default['solrcloud']['major_version'] = node['solrcloud']['version'].split('.')[0].to_i
+default['solrcloud']['server_base_dir_name'] = node['solrcloud']['major_version'] == 5 ? 'server' : 'example'
 
 default['solrcloud']['install_dir']   = '/usr/local/solr'
 default['solrcloud']['data_dir']      = '/opt/solr'
