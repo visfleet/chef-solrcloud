@@ -179,6 +179,7 @@ include_recipe 'solrcloud::zkcli'
 service 'solr' do
   supports :start => true, :stop => true, :restart => true, :status => true
   service_name node['solrcloud']['service_name']
+  priority node['solrcloud']['service_priority']
   action [:enable, :start]
   notifies :run, 'ruby_block[wait_start_up]', :immediately
 end
