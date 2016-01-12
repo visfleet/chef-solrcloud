@@ -18,6 +18,7 @@ default['solrcloud']['restore_cores'] = true
 default['solrcloud']['notify_restart']      = false # notify service restart on config change
 default['solrcloud']['notify_restart_upgrade']    = false # notify service restart on config change
 default['solrcloud']['service_name']        = 'solr'
+default['solrcloud']['service_priority']    = 60
 default['solrcloud']['service_start_wait']  = 15
 
 default['solrcloud']['dir_mode']      = '0755' # default directory permissions used by solrcloud cookbook
