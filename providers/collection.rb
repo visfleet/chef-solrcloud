@@ -47,6 +47,17 @@ action :create do
       :auto_add_replicas      => new_resource.auto_add_replicas
     }
 
+    ruby_block 'debug solrcloud collection create action' do
+      block do
+        Chef::Log.warn "new_resource.name: #{new_resource.name}"
+        Chef::Log.warn "new_resource.replication_factor: #{new_resource.replication_factor}"
+        Chef::Log.warn "new_resource.zkhost: #{new_resource.zkhost}"
+        Chef::Log.warn "solr_options: #{solr_options}"
+        Chef::Log.warn "collection_options: #{collection_options}"
+        Chef::Log.warn "node['solrcloud']['manage_collections']: #{node['solrcloud']['manage_collections']}"
+      end
+    end
+
     ruby_block "create collection #{new_resource.name}" do
       block do
         SolrCloud::Collection.new(solr_options).create(new_resource.name, new_resource.replication_factor, collection_options)
