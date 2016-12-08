@@ -1,7 +1,7 @@
 solrcloud Cookbook
 ==================
 
-[![Cookbook](http://img.shields.io/badge/cookbook-v0.5.3-green.svg)](https://github.com/vkhatri/chef-solrcloud) [![Build Status](https://travis-ci.org/vkhatri/chef-solrcloud.svg?branch=master)](https://travis-ci.org/vkhatri/chef-solrcloud)
+[![Build Status](https://travis-ci.org/vkhatri/chef-solrcloud.svg?branch=master)](https://travis-ci.org/vkhatri/chef-solrcloud)
 
 This is a [Chef] cookbook for [Apache Solr].
 
@@ -14,6 +14,8 @@ what you find missing!
 SolrCloud is the default deployment and Solr Master/Slave setup is not supported
 by this cookbook.
 
+>> For Production environment, always prefer the [most recent release].
+
 
 ## Repository
 
@@ -22,7 +24,9 @@ https://github.com/vkhatri/chef-solrcloud
 
 ## Supported Apache Solr Version
 
-This cookbook was tested for Apache Solr v4.9.0 and v4.10.x.
+This cookbook was tested for Apache Solr v4.9, v4.10 and v5.1.0.
+
+>> v5.2.x support is being added, but not yet fully tested.
 
 
 ## Supported Apache Solr Runtime
@@ -46,15 +50,38 @@ support Apache Solr Master/Slave Cluster deployment.
 Check [Apache Solr] Documentation for JDK Version requirement for current Solr version, Oracle JDK 7 is recommended.
 
 
+## Major Changes
+
+
+### Under Development
+
+* `default['solrcloud']['enable_ssl']` is set to `false`, you need to enable it in wrapper recipe / role / node before using this cookbook version
+
+* watch out for init.d sysconfig/environment file changes, if you have enabled node['solrcloud']['notify_restart'] it will trigger `solr` service `restart`
+
+### v0.6.9
+
+* LWRP `zkconfigset` provider now refers to resource attribute `configset_name` instead of `name` attribute.
+Existing users might want to test LWRP `zkconfigset` resources before using this version.
+
+
 ## Recipes
 
-- `solrcloud::tarball`     	- install solr package, directories and service
+- `solrcloud::default`  - default recipe, used for `run_list`
 
-- `solrcloud::config`  		- manages solr base configuration files
+- `solrcloud::attributes`  - derived attributes recipe
 
-- `solrcloud::jetty`   		- manages jetty base configuration files and directories
+- `solrcloud::tarball`     	- install solr
 
-- `solrcloud::zkcli`		- setup zookeeper package for zookeeper client binary (zkCli.sh)
+- `solrcloud::config`  		- manages solr configuration
+
+- `solrcloud::service`   	- manages solr service
+
+- `solrcloud::jetty`   		- manages jetty configuration
+
+- `solrcloud::java`   		- install java
+
+- `solrcloud::zkcli`		- setup zookeeper for zookeeper client binary (zkCli.sh)
 
 		zkcli recipe does not manage zookeeper server and its only purpose
 		is to have zookeeper client on all solr nodes
@@ -64,12 +91,11 @@ Check [Apache Solr] Documentation for JDK Version requirement for current Solr v
 		solr user is better to be managed by a User management cookbook
 		instead of solrcloud for Production environment.
 
+
 - `solrcloud::zkconfigsets`	- create/delete solrcloud configSet in zookeeper via LWRP
 
 - `solrcloud::collections` 	- create/delete solrcloud collection on solrcloud node via LWRP
 
-
-> `solrcloud::tarball` is the main recipe which includes all other recipe. For `run_list` use `solrcloud::tarball`.
 
 
 ## SolrCloud configSet (Zookeeper Configs) LWRP
@@ -326,15 +352,17 @@ Parameters:
 
         With attribute `default[:solrcloud][:zk_run]`, this attribute will get local zookeeper server.
 
- * `default[:solrcloud][:java_options]` (default: `[]`): java options
+ * `default[:solrcloud][:java_options]` (default: `[]`): java options. Note that xmx and xms have special attributes and setting them through this list will not work past SOLR v.5.2.x.
 
- * `default[:solrcloud][:auto_java_memory]` (default: `true`): enable auto java memory allocation, sets java attribute `-Xmx` for `node[:solrcloud][:java_options]`
+ * `default[:solrcloud][:java_xmx]` (default: `512m`): Default starting memory for the JVM unless auto_java_memory is turned on in which case the default is half of total memory.
 
-		This option calculates maximum allowed memory (multiple of 1024) for java process with minimum system memory 		reservation defined by attribute `node[:solrcloud][:auto_system_memory]`
+ * `default[:solrcloud][:java_xms]` (default: `512m`): Default starting memory for the JVM unless auto_java_memory is turned on in which case the default is half of total memory.
 
- * `default[:solrcloud][:auto_system_memory]` (default: `768`): memory to preserve for OS, required when attribute `default[:solrcloud][:auto_java_memory]` is set
+ * `default[:solrcloud][:auto_java_memory]` (default: `true`): if true, set `default[:solrcloud][:java_xmx]` and `default[:solrcloud][:java_xms]` to `(total_memory / 2)`.
 
  * `default[:solrcloud][:install_java]` (default: `true`): setup java, disable to manage java outside of this cookbook
+
+ * `default[:solrcloud][:tarball_purge]` (default: `false`): delete old versions archive if set to true
 
  * `default[:solrcloud][:context_name]` (default: `solr`): default solr jetty context path value
 
@@ -352,7 +380,15 @@ Parameters:
 
  * `default[:solrcloud][:setup_user]` (default: `true`): manage solr user for solr service using `solrcloud::user` cookbook
 
- * `default[:solrcloud][:version]` (default: `4.10.2`): solr package version
+ * `default[:solrcloud][:version]` (default: `5.1.0`): solr package version
+
+ * `default[:solrcloud][:tarball_url]` (default: `auto`): allows user to define custom solr tarball url, by default download from apache solr archive
+
+ * `default[:solrcloud][:sha256sum]` (default: `nil`): allows user to provide sha256sum value for solr tarball if version is not yet supported by cookbook
+
+ * `default[:solrcloud][:major_version]` (default: `calculated`): solr package major version to configure solr 4 / 5, valid values - 4 5
+
+ * `default[:solrcloud][:server_base_dir_name]` (default: `calculated`): solr base directory to configure solr 4 / 5, valid values - example server
 
  * `default[:solrcloud][:zk_run_data_dir]` (default: `node[:solrcloud][:install_dir]/zookeeperdata`): embedded zookeeper data directory
 
@@ -366,6 +402,8 @@ Parameters:
           <dataDir>${solr.data.dir:}/collection name</dataDir>
 
  * `default[:solrcloud][:solr_home]` (default: `node[:solrcloud][:install_dir]/solr`): solr home
+
+ * `default[:solrcloud][:sysconfig_file]` (default: ```{ debian: '/etc/default/solr', rhel: '/etc/sysconfig/solr' }```): Location of sysconfig file meant for assigning environment variables to solr on startup.
 
  * `default[:solrcloud][:cores_home]` (default: `node[:solrcloud][:solr_home]/cores`): solr collection/core home
 
@@ -391,6 +429,9 @@ Parameters:
 
  * `default[:solrcloud][:zookeeper][:version]` (default: `3.4.6`): zookeeper package setup for zkCli.sh
 
+ * `default[:solrcloud][:zookeeper][:tarball_url]` (default: `auto`): allows user to define custom zookeeper tarball url, by default download from zookeeper archive
+
+ * `default[:solrcloud][:zookeeper][:sha256sum]` (default: `nil`): allows user to provide sha256sum value for zookeeper tarball if version is not yet supported by cookbook
 
 ## Cookbook Ulimit Attributes
 
@@ -765,3 +806,4 @@ limitations under the License.
 [Chef]: https://www.getchef.com/chef/
 [Contributors]: https://github.com/vkhatri/chef-solrcloud/graphs/contributors
 [Shawn Heisey]: https://wiki.apache.org/solr/ShawnHeisey
+[most recent release]: https://supermarket.chef.io/cookbooks/solrcloud

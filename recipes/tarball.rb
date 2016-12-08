@@ -17,14 +17,18 @@
 # limitations under the License.
 #
 
+# to run apt-get update for first time
+include_recipe 'apt' if node['platform'] == 'debian'
+
 # Setup Solr Service User
 include_recipe 'solrcloud::user'
 include_recipe 'solrcloud::java'
 
 # Require for zk gem
-%w(patch gcc).each do |pkg|
+%w(patch gcc make).each do |pkg|
   package pkg do
     action :nothing
+# <<<<<<< HEAD
     retries 2
   end.run_action(:install)
 end
@@ -33,15 +37,41 @@ chef_gem 'zk' do
   action :nothing
   retries 2
 end.run_action(:install)
+# =======
+#     only_if { node['solrcloud']['install_zk_gem'] }
+#   end.run_action(:install)
+# end
+
+# if Chef::Resource::ChefGem.method_defined?(:compile_time)
+#   chef_gem 'zk' do
+#     compile_time true
+#   end
+# else
+#   chef_gem 'zk' do
+#     action :nothing
+#     only_if { node['solrcloud']['install_zk_gem'] }
+#   end.run_action(:install)
+# end
+# >>>>>>> upstream/master
 
 require 'zk'
 require 'net/http'
 require 'json'
 require 'tmpdir'
 
-temp_d        = Dir.tmpdir
-tarball_file  = ::File.join(temp_d, "solr-#{node['solrcloud']['version']}.tgz")
-tarball_dir   = ::File.join(temp_d, "solr-#{node['solrcloud']['version']}")
+solr_version = node['solrcloud']['version']
+
+if node['solrcloud']['tarball_url'] == 'auto'
+  tarball_url = "https://archive.apache.org/dist/lucene/solr/#{solr_version}/solr-#{solr_version}.tgz"
+else
+  tarball_url = node['solrcloud']['tarball_url']
+end
+
+tarball_checksum = solr_tarball_sha256sum(solr_version)
+
+temp_dir      = Dir.tmpdir
+tarball_file  = ::File.join(temp_dir, "solr-#{solr_version}.tgz")
+tarball_dir   = ::File.join(temp_dir, "solr-#{solr_version}")
 
 # Old Source Location for cores backup
 if ::File.exist?(node['solrcloud']['install_dir'])
@@ -52,16 +82,18 @@ else
 end
 
 # Stop Solr Service if running for Version Upgrade
-service 'solr' do
+service 'stop_solr' do
   service_name node['solrcloud']['service_name']
   action :stop
-  only_if { File.exist?("/etc/init.d/#{node['solrcloud']['service_name']}") && !File.exist?(node['solrcloud']['source_dir']) }
+  only_if { ::File.exist?("/etc/init.d/#{node['solrcloud']['service_name']}") && !::File.exist?(::File.join(node['solrcloud']['source_dir'], 'dist', "solr-core-#{solr_version}.jar")) }
 end
 
 # Solr Version Package File
-remote_file tarball_file do
-  source node['solrcloud']['tarball']['url']
-  not_if { File.exist?("#{node['solrcloud']['source_dir']}/dist/solr-#{node['solrcloud']['version']}.war") }
+remote_file 'solr_tarball_file' do
+  path tarball_file
+  source tarball_url
+  checksum tarball_checksum
+  not_if { ::File.exist?("#{node['solrcloud']['source_dir']}/dist/solr-core-#{solr_version}.jar") }
 end
 
 # Extract and Setup Solr Source directories
@@ -75,35 +107,27 @@ bash 'extract_solr_tarball' do
     chown -R #{node['solrcloud']['user']}:#{node['solrcloud']['group']} #{node['solrcloud']['source_dir']}
     chmod #{node['solrcloud']['dir_mode']} #{node['solrcloud']['source_dir']}
   EOS
-
-  not_if  { File.exist?(node['solrcloud']['source_dir']) }
-  creates "#{node['solrcloud']['install_dir']}/dist/solr-#{node['solrcloud']['version']}.war"
-  action :run
+  creates ::File.join(node['solrcloud']['source_dir'], 'dist', "solr-core-#{solr_version}.jar")
 end
 
 # Link Solr install_dir to Current source_dir
 link node['solrcloud']['install_dir'] do
   to node['solrcloud']['source_dir']
-  owner node['solrcloud']['user']
-  group node['solrcloud']['group']
   notifies :restart, 'service[solr]', :delayed if node['solrcloud']['notify_restart_upgrade']
-  action :create
 end
 
 # Link Jetty lib dir
-link File.join(node['solrcloud']['install_dir'], 'lib') do
-  to File.join(node['solrcloud']['install_dir'], 'example', 'lib')
+link ::File.join(node['solrcloud']['install_dir'], 'lib') do
+  to ::File.join(node['solrcloud']['install_dir'], node['solrcloud']['server_base_dir_name'], 'lib')
   owner node['solrcloud']['user']
   group node['solrcloud']['group']
-  action :create
 end
 
 # Link Solr start.jar
-link File.join(node['solrcloud']['install_dir'], 'start.jar') do
-  to File.join(node['solrcloud']['install_dir'], 'example', 'start.jar')
+link ::File.join(node['solrcloud']['install_dir'], 'start.jar') do
+  to ::File.join(node['solrcloud']['install_dir'], node['solrcloud']['server_base_dir_name'], 'start.jar')
   owner node['solrcloud']['user']
   group node['solrcloud']['group']
-  action :create
 end
 
 # Setup Directories for Solr
@@ -111,21 +135,19 @@ end
  node['solrcloud']['pid_dir'],
  node['solrcloud']['data_dir'],
  node['solrcloud']['solr_home'],
- node['solrcloud']['shared_lib'],
  node['solrcloud']['config_sets'],
  node['solrcloud']['cores_home'],
  node['solrcloud']['zkconfigsets_home'],
- File.join(node['solrcloud']['install_dir'], 'etc'),
- File.join(node['solrcloud']['install_dir'], 'resources'),
- File.join(node['solrcloud']['install_dir'], 'webapps'),
- File.join(node['solrcloud']['install_dir'], 'contexts')
+ ::File.join(node['solrcloud']['install_dir'], 'etc'),
+ ::File.join(node['solrcloud']['install_dir'], 'resources'),
+ ::File.join(node['solrcloud']['install_dir'], 'webapps'),
+ ::File.join(node['solrcloud']['install_dir'], 'contexts')
 ].each do |dir|
   directory dir do
     owner node['solrcloud']['user']
     group node['solrcloud']['group']
     mode 0755
     recursive true
-    action :create
   end
 end
 
@@ -148,7 +170,6 @@ directory node['solrcloud']['zk_run_data_dir'] do
   group node['solrcloud']['group']
   mode 0755
   recursive true
-  action :create
   only_if { node['solrcloud']['zk_run'] }
 end
 
@@ -167,6 +188,7 @@ ruby_block 'require_pam_limits.so' do
   end
 end
 
+# <<<<<<< HEAD
 # Solr Config
 include_recipe 'solrcloud::config'
 
@@ -182,22 +204,25 @@ service 'solr' do
   priority node['solrcloud']['service_priority']
   action [:enable, :start]
   notifies :run, 'ruby_block[wait_start_up]', :immediately
+# =======
+# file 'local_solr_tarball_file' do
+#   path tarball_file
+#   action :delete
+# >>>>>>> upstream/master
 end
 
-# Waiting for Service
-ruby_block 'wait_start_up' do
-  block  do
-    sleep node['solrcloud']['service_start_wait']
+# purge older versions
+ruby_block 'purge_old_versions' do
+  block do
+    require 'fileutils'
+    installed_versions = Dir.entries('/usr/local').reject { |a| a !~ /^solr-/ }.sort
+    old_versions = installed_versions - ["solr-#{solr_version}"]
+
+    old_versions.each do |v|
+      v = "/usr/local/#{v}"
+      FileUtils.rm_rf Dir.glob(v)
+      Chef::Log.warn("deleted older solr tarball archive #{v}")
+    end
   end
-  action :nothing
+  only_if { node['solrcloud']['tarball_purge'] }
 end
-
-remote_file tarball_file do
-  action :delete
-end
-
-# Setup configsets - node['solrcloud']['zkconfigsets']
-include_recipe 'solrcloud::zkconfigsets'
-
-# Setup collections - node['solrcloud']['collections']
-include_recipe 'solrcloud::collections'

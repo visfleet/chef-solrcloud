@@ -5,7 +5,7 @@ require 'rubocop/rake_task'
 require 'rspec/core/rake_task'
 
 desc 'Run all lints'
-task :lint => %w(foodcritic rubocop knife spec)
+task :lint => %w(foodcritic rubocop spec)
 task :default => :lint
 
 desc 'Run Rubocop Lint Task'
@@ -34,4 +34,11 @@ end
 desc 'Run Chef Spec Test'
 task :spec do
   RSpec::Core::RakeTask.new(:spec)
+end
+
+begin
+  require "kitchen/rake_tasks"
+  Kitchen::RakeTasks.new
+rescue LoadError
+  puts ">>>>> Kitchen gem not loaded, omitting tasks" unless ENV["CI"]
 end

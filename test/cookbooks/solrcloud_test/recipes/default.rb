@@ -1,8 +1,8 @@
 #
-# Cookbook Name:: solrcloud
-# Recipe:: user
+# Cookbook Name:: solrcloud_test
+# Recipe:: default
 #
-# Copyright 2014, Virender Khatri
+# Copyright 2015, Virender Khatri
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,18 +16,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-require 'spec_helper'
-
-describe 'solrcloud::user' do
-  let(:chef_run) { ChefSpec::Runner.new(:platform => 'ubuntu', :version  => '12.04').converge(described_recipe) }
-
-  it 'adds group solr' do
-    expect(chef_run).to create_group('solr')
-  end
-
-  it 'adds user solr' do
-    expect(chef_run).to create_user('solr')
-  end
-
-end

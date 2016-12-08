@@ -21,7 +21,7 @@ actions :create, :delete
 
 default_action :create
 
-attribute :configset_name,  :kind_of => String, :default => :name
+attribute :configset_name,  :kind_of => String
 attribute :user,            :kind_of => String, :default => node['solrcloud']['user']
 attribute :group,           :kind_of => String, :default => node['solrcloud']['group']
 attribute :solr_zkcli,      :kind_of => String, :default => node['solrcloud']['zookeeper']['solr_zkcli']
@@ -30,4 +30,9 @@ attribute :zkhost,          :kind_of => String, :default => node['solrcloud']['s
 attribute :zkconfigsets_home,       :kind_of => String, :default => node['solrcloud']['zkconfigsets_home']
 attribute :zkconfigsets_cookbook,   :kind_of => String, :default => node['solrcloud']['zkconfigsets_cookbook']
 attribute :manage_zkconfigsets,     :kind_of => [FalseClass, TrueClass], :default => node['solrcloud']['manage_zkconfigsets']
-attribute :force_upload,     :kind_of => [FalseClass, TrueClass], :default => node['solrcloud']['force_zkconfigsets_upload']
+attribute :force_upload, :kind_of => [FalseClass, TrueClass], :default => node['solrcloud']['force_zkconfigsets_upload']
+
+def initialize(*args)
+  super
+  @configset_name ||= @name
+end

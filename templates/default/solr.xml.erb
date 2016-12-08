@@ -35,7 +35,7 @@
 
 <solr>
   <str name="adminHandler"><%=node.solrcloud.solr_config.admin_handler-%></str>
-  <% if node.solrcloud.version !~ /^4\.[1-9][0-9]\.\d/ -%>
+  <% if node.solrcloud.version !~ /^4\.[1-9][0-9]\.\d|^5/ -%>
   <str name="adminPath"><%=node.solrcloud.solr_config.admin_path-%></str>
   <% end -%>
   <int name="coreLoadThreads"><%=node.solrcloud.solr_config.core_load_threads-%></int>
@@ -58,9 +58,9 @@
     <str name="hostContext">${hostContext:<%=node.solrcloud.solr_config.solrcloud.host_context-%>}</str>
     <int name="zkClientTimeout">${zkClientTimeout:<%=node.solrcloud.solr_config.solrcloud.zk_client_timeout-%>}</int>
     <%if node.solrcloud.zk_run-%>
-    <!-- <str name="zkHost">${zkHost:<%=node.solrcloud.solr_config.solrcloud.zk_host.sort.uniq.join(',')-%>}</str> -->
+    <!-- <str name="zkHost">${zkHost:<%=node.solrcloud.solr_config.solrcloud.zk_host.sort.uniq.join(',')-%><%=node.solrcloud.solr_config.solrcloud.zk_chroot-%>}</str> -->
     <%else-%>
-    <str name="zkHost">${zkHost:<%=node.solrcloud.solr_config.solrcloud.zk_host.sort.uniq.join(',')-%>}</str>
+    <str name="zkHost">${zkHost:<%=node.solrcloud.solr_config.solrcloud.zk_host.sort.uniq.join(',')-%><%=node.solrcloud.solr_config.solrcloud.zk_chroot-%>}</str>
     <%end-%>
     <bool name="genericCoreNodeNames">${genericCoreNodeNames:<%=node.solrcloud.solr_config.solrcloud.generic_core_node_names-%>}</bool>
   </solrcloud>

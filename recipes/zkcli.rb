@@ -22,14 +22,26 @@
 
 require 'tmpdir'
 
+zookeeper_version = node['solrcloud']['zookeeper']['version']
+
+if node['solrcloud']['zookeeper']['tarball_url'] == 'auto'
+  zookeeper_tarball_url = "https://archive.apache.org/dist/zookeeper/zookeeper-#{zookeeper_version}/zookeeper-#{zookeeper_version}.tar.gz"
+else
+  zookeeper_tarball_url = node['solrcloud']['zookeeper']['tarball_url']
+end
+
+zookeeper_tarball_checksum = zookeeper_tarball_sha256sum(zookeeper_version)
+
 temp_d        = Dir.tmpdir
-tarball_file  = File.join(temp_d, "zookeeper-#{node['solrcloud']['zookeeper']['version']}.tar.gz")
-tarball_dir   = File.join(temp_d, "zookeeper-#{node['solrcloud']['zookeeper']['version']}")
+tarball_file  = ::File.join(temp_d, "zookeeper-#{zookeeper_version}.tar.gz")
+tarball_dir   = ::File.join(temp_d, "zookeeper-#{zookeeper_version}")
 
 # Zookeeper Version Package File
-remote_file tarball_file do
-  source node['solrcloud']['zookeeper']['tarball']['url']
-  not_if { File.exist?("#{node['solrcloud']['zookeeper']['source_dir']}/zookeeper-#{node['solrcloud']['zookeeper']['version']}.jar") }
+remote_file 'zookeeper_tarball_file' do
+  path tarball_file
+  source zookeeper_tarball_url
+  checksum zookeeper_tarball_checksum
+  not_if { ::File.exist?("#{node['solrcloud']['zookeeper']['source_dir']}/zookeeper-#{zookeeper_version}.jar") }
 end
 
 # Extract and Setup Zookeeper Source directories
@@ -44,8 +56,8 @@ bash 'extract_zookeeper_tarball' do
     chmod #{node['solrcloud']['dir_mode']} #{node['solrcloud']['zookeeper']['source_dir']}
   EOS
 
-  not_if  { File.exist?(node['solrcloud']['zookeeper']['source_dir']) }
-  creates "#{node['solrcloud']['zookeeper']['install_dir']}/zookeeper-#{node['solrcloud']['zookeeper']['version']}.jar"
+  not_if  { ::File.exist?(node['solrcloud']['zookeeper']['source_dir']) }
+  creates "#{node['solrcloud']['zookeeper']['install_dir']}/zookeeper-#{zookeeper_version}.jar"
   action :run
 end
 
@@ -57,20 +69,20 @@ link node['solrcloud']['zookeeper']['install_dir'] do
   action :create
 end
 
-template File.join(node['solrcloud']['zookeeper']['install_dir'], 'conf', 'zoo.cfg') do
+template ::File.join(node['solrcloud']['zookeeper']['install_dir'], 'conf', 'zoo.cfg') do
   source 'zoo.cfg.erb'
   owner node['solrcloud']['user']
   group node['solrcloud']['group']
   mode 0644
 end
 
-template File.join(node['solrcloud']['zookeeper']['install_dir'], 'bin', 'zkEnv.sh') do
+template ::File.join(node['solrcloud']['zookeeper']['install_dir'], 'bin', 'zkEnv.sh') do
   source 'zkEnv.sh.erb'
   owner node['solrcloud']['user']
   group node['solrcloud']['group']
   mode 0644
 end
 
-remote_file tarball_file do
+file tarball_file do
   action :delete
 end
