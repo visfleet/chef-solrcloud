@@ -3,6 +3,10 @@ solrcloud CHANGELOG
 
 This file is used to list changes made in each version of the solrcloud cookbook.
 
+1.1
+---
+ - Jontie Wakeham - Merged with local repo running solr 4.10.2
+
 0.8.6
 -----
 
