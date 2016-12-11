@@ -33,25 +33,25 @@ include_recipe 'solrcloud::java'
   end.run_action(:install)
 end
 
-chef_gem 'zk' do
-  action :nothing
-  retries 2
-end.run_action(:install)
+#chef_gem 'zk' do
+#  action :nothing
+#  retries 2
+# end.run_action(:install)
 # =======
-#     only_if { node['solrcloud']['install_zk_gem'] }
+#    only_if { node['solrcloud']['install_zk_gem'] }
 #   end.run_action(:install)
 # end
 
-# if Chef::Resource::ChefGem.method_defined?(:compile_time)
-#   chef_gem 'zk' do
-#     compile_time true
-#   end
-# else
-#   chef_gem 'zk' do
-#     action :nothing
-#     only_if { node['solrcloud']['install_zk_gem'] }
-#   end.run_action(:install)
-# end
+ if Chef::Resource::ChefGem.method_defined?(:compile_time)
+   chef_gem 'zk' do
+     compile_time true
+   end
+ else
+   chef_gem 'zk' do
+     action :nothing
+     only_if { node['solrcloud']['install_zk_gem'] }
+   end.run_action(:install)
+ end
 # >>>>>>> upstream/master
 
 require 'zk'
