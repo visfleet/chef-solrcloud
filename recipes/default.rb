@@ -23,23 +23,23 @@ include_recipe 'solrcloud::attributes'
 # install solr from tarball
 include_recipe 'solrcloud::tarball'
 
-# set solr jvm
+# setup solr jvm
 include_recipe 'solrcloud::memory'
 
 # setup zookeeper client
-#include_recipe 'solrcloud::zkcli'
+include_recipe 'solrcloud::zkcli'
 
 # configure solr
-#include_recipe 'solrcloud::config'
+include_recipe 'solrcloud::config'
 
 # configure jetty
-#include_recipe 'solrcloud::jetty'
+include_recipe 'solrcloud::jetty'
 
 # solr service
-#include_recipe 'solrcloud::service'
+include_recipe 'solrcloud::service'
 
 # setup configsets - node['solrcloud']['zkconfigsets']
-#include_recipe 'solrcloud::zkconfigsets'
+include_recipe 'solrcloud::zkconfigsets'
 
 # setup collections - node['solrcloud']['collections']
-#include_recipe 'solrcloud::collections'
+include_recipe 'solrcloud::collections'
