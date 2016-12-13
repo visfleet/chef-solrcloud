@@ -19,7 +19,8 @@
 
 node.default['solrcloud']['major_version'] = node['solrcloud']['version'].split('.')[0].to_i
 node.default['solrcloud']['minor_version'] = node['solrcloud']['version'].split('.')[1].to_i
-node.default['solrcloud']['server_base_dir_name'] = node['solrcloud']['major_version'] == 5 ? 'server' : 'example'
+#node.default['solrcloud']['server_base_dir_name'] = node['solrcloud']['major_version'] == 5 ? 'server' : 'example'
+node.default['solrcloud']['server_base_dir_name'] = 'server'
 
 node.default['solrcloud']['source_dir'] = '/usr/local/solr-' + node['solrcloud']['version']
 
@@ -49,17 +50,17 @@ node.default['solrcloud']['jmx']['access_file']    = ::File.join(node['solrcloud
 node.default['solrcloud']['zookeeper']['source_dir'] = ::File.join(node['solrcloud']['source_dir'], "zookeeper-#{node['solrcloud']['zookeeper']['version']}")
 node.default['solrcloud']['zookeeper']['install_dir']      = ::File.join(node['solrcloud']['install_dir'], 'zookeeper')
 node.default['solrcloud']['zookeeper']['zkcli']            = ::File.join(node['solrcloud']['zookeeper']['install_dir'], 'bin', 'zkCli.sh')
-#node.default['solrcloud']['zookeeper']['solr_zkcli']       = ::File.join(node['solrcloud']['install_dir'], node['solrcloud']['server_base_dir_name'], 'scripts/cloud-scripts/zkcli.sh')
-node.default['solrcloud']['zookeeper']['solr_zkcli']       = "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh"
+node.default['solrcloud']['zookeeper']['solr_zkcli']       = ::File.join(node['solrcloud']['install_dir'], node['solrcloud']['server_base_dir_name'], 'scripts/cloud-scripts/zkcli.sh')
+#node.default['solrcloud']['zookeeper']['solr_zkcli']       = "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh"
 
-if node['solrcloud']['auto_java_memory'] && node['memory'] && node['memory'].key?('total')
+#if node['solrcloud']['auto_java_memory'] && node['memory'] && node['memory'].key?('total')
   # set heap size to half of total memory if node['solrcloud']['auto_java_memory'] is set
-  heap_size = (node['memory']['total'].gsub('kB', '').to_i / 1024).to_i / 2
-  heap_size += 1 unless heap_size.even?
-  node.default['solrcloud']['java_xmx'] = "#{heap_size}m"
-  node.default['solrcloud']['java_xms'] = "#{heap_size}m"
-else
+#  heap_size = (node['memory']['total'].gsub('kB', '').to_i / 1024).to_i / 2
+#  heap_size += 1 unless heap_size.even?
+#  node.default['solrcloud']['java_xmx'] = "#{heap_size}m"
+#  node.default['solrcloud']['java_xms'] = "#{heap_size}m"
+#else
   # default heap size
-  node.default['solrcloud']['java_xmx'] = '512m'
-  node.default['solrcloud']['java_xms'] = '512m'
-end
+#  node.default['solrcloud']['java_xmx'] = '512m'
+#  node.default['solrcloud']['java_xms'] = '512m'
+#end
