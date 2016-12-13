@@ -188,7 +188,6 @@ ruby_block 'require_pam_limits.so' do
   end
 end
 
-# <<<<<<< HEAD
 # Solr Config
 include_recipe 'solrcloud::config'
 
@@ -204,11 +203,6 @@ service 'solr' do
   priority node['solrcloud']['service_priority']
   action [:enable, :start]
   notifies :run, 'ruby_block[wait_start_up]', :immediately
-# =======
-# file 'local_solr_tarball_file' do
-#   path tarball_file
-#   action :delete
-# >>>>>>> upstream/master
 end
 
 # purge older versions

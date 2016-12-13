@@ -1,9 +1,9 @@
 
 # Enable Auto Memory -Xmx java option
-default['solrcloud']['auto_java_memory'] = true
+node.default['solrcloud']['auto_java_memory'] = true
 
 # Minimum Memory to preserve for system
-default['solrcloud']['auto_system_memory'] = 768
+node.default['solrcloud']['auto_system_memory'] = 1024
 
 # Calculate -Xmx (Multiple of 1024)
 if node['solrcloud']['auto_java_memory'] && node['memory'] && node['memory'].key?('total')
@@ -22,5 +22,7 @@ if node['solrcloud']['auto_java_memory'] && node['memory'] && node['memory'].key
   java_memory = total_memory - system_memory
   # Making Java -Xmx even
   java_memory += 1 unless java_memory.even?
-  node.default['solrcloud']['java_options'] << " -Xmx#{java_memory}m "
+  node.default['solrcloud']['java_xmx'] = "#{java_memory}m"
+  node.default['solrcloud']['java_xms'] = "#{java_memory}m"
+  #node.default['solrcloud']['java_options'] << "  -Xms#{java_memory}m  -Xmx#{java_memory}m "
 end
