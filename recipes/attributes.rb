@@ -19,8 +19,7 @@
 
 node.default['solrcloud']['major_version'] = node['solrcloud']['version'].split('.')[0].to_i
 node.default['solrcloud']['minor_version'] = node['solrcloud']['version'].split('.')[1].to_i
-#node.default['solrcloud']['server_base_dir_name'] = node['solrcloud']['major_version'] == 5 ? 'server' : 'example'
-node.default['solrcloud']['server_base_dir_name'] = 'server'
+node.default['solrcloud']['server_base_dir_name'] = node['solrcloud']['major_version'] == 5 ? 'server' : 'example'
 
 node.default['solrcloud']['source_dir'] = '/usr/local/solr-' + node['solrcloud']['version']
 
@@ -52,6 +51,7 @@ node.default['solrcloud']['zookeeper']['install_dir']      = ::File.join(node['s
 node.default['solrcloud']['zookeeper']['zkcli']            = ::File.join(node['solrcloud']['zookeeper']['install_dir'], 'bin', 'zkCli.sh')
 node.default['solrcloud']['zookeeper']['solr_zkcli']       = ::File.join(node['solrcloud']['install_dir'], node['solrcloud']['server_base_dir_name'], 'scripts/cloud-scripts/zkcli.sh')
 
+## Moved to memory.rb
 #if node['solrcloud']['auto_java_memory'] && node['memory'] && node['memory'].key?('total')
   # set heap size to half of total memory if node['solrcloud']['auto_java_memory'] is set
 #  heap_size = (node['memory']['total'].gsub('kB', '').to_i / 1024).to_i / 2
