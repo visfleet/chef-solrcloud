@@ -24,9 +24,9 @@ end
 use_inline_resources
 
 action :create do
-  fail "collection #{new_resource.name} is missing option :collection_config_name (zookeeper configSet)" unless new_resource.collection_config_name
+  fail "collection #{new_resource.configset_name} is missing option :collection_config_name (zookeeper configSet)" unless new_resource.collection_config_name
 
-  converge_by("create collection #{new_resource.name} if missing \n") do
+  converge_by("create collection #{new_resource.configset_name} if missing \n") do
     solr_options = {
       :host => new_resource.host,
       :port => new_resource.port,
@@ -49,7 +49,7 @@ action :create do
 
     ruby_block 'debug solrcloud collection create action' do
       block do
-        Chef::Log.warn "new_resource.name: #{new_resource.name}"
+        Chef::Log.warn "new_resource.configset_name: #{new_resource.configset_name}"
         Chef::Log.warn "new_resource.replication_factor: #{new_resource.replication_factor}"
         Chef::Log.warn "new_resource.zkhost: #{new_resource.zkhost}"
         Chef::Log.warn "solr_options: #{solr_options}"
@@ -58,17 +58,17 @@ action :create do
       end
     end
 
-    ruby_block "create collection #{new_resource.name}" do
+    ruby_block "create collection #{new_resource.configset_name}" do
       block do
-        SolrCloud::Collection.new(solr_options).create(new_resource.name, new_resource.replication_factor, collection_options)
+        SolrCloud::Collection.new(solr_options).create(new_resource.configset_name, new_resource.replication_factor, collection_options)
       end
-      only_if { node['solrcloud']['manage_collections'] && !SolrCloud::Zk.new(new_resource.zkhost).collection?(new_resource.name) }
+      only_if { node['solrcloud']['manage_collections'] && !SolrCloud::Zk.new(new_resource.zkhost).collection?(new_resource.configset_name) }
     end
   end
 end
 
 action :delete do
-  converge_by("delete collection #{new_resource.name} if exists \n") do
+  converge_by("delete collection #{new_resource.configset_name} if exists \n") do
     solr_options = {
       :host => new_resource.host,
       :port => new_resource.port,
@@ -76,17 +76,17 @@ action :delete do
       :ssl_port => new_resource.ssl_port
     }
 
-    ruby_block "delete collection #{new_resource.name}" do
+    ruby_block "delete collection #{new_resource.configset_name}" do
       block do
-        SolrCloud::Collection.new(solr_options).delete(new_resource.name, new_resource.context_path)
+        SolrCloud::Collection.new(solr_options).delete(new_resource.configset_name, new_resource.context_path)
       end
-      only_if { node['solrcloud']['manage_collections'] && SolrCloud::Zk.new(new_resource.zkhost).collection?(new_resource.name) }
+      only_if { node['solrcloud']['manage_collections'] && SolrCloud::Zk.new(new_resource.zkhost).collection?(new_resource.configset_name) }
     end
   end
 end
 
 action :reload do
-  converge_by("reload collection #{new_resource.name} if exists \n") do
+  converge_by("reload collection #{new_resource.configset_name} if exists \n") do
     solr_options = {
       :host => new_resource.host,
       :port => new_resource.port,
@@ -94,11 +94,11 @@ action :reload do
       :ssl_port => new_resource.ssl_port
     }
 
-    ruby_block "reload collection #{new_resource.name}" do
+    ruby_block "reload collection #{new_resource.configset_name}" do
       block do
-        SolrCloud::Collection.new(solr_options).reload(new_resource.name, new_resource.context_path)
+        SolrCloud::Collection.new(solr_options).reload(new_resource.configset_name, new_resource.context_path)
       end
-      only_if { node['solrcloud']['manage_collections'] && SolrCloud::Zk.new(new_resource.zkhost).collection?(new_resource.name) }
+      only_if { node['solrcloud']['manage_collections'] && SolrCloud::Zk.new(new_resource.zkhost).collection?(new_resource.configset_name) }
     end
   end
 
