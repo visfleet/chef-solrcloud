@@ -55,7 +55,7 @@ action :create do
 
     # Upload on any config update
     execute "zk_config_set_upconfig_#{new_resource.configset_name}_update_upload" do
-      command "#{new_resource.solr_zkcli} -zkhost #{new_resource.zkhost} -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name, 'conf')} -confname #{new_resource.configset_name} 2>&1"
+      command "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh -zkhost #{new_resource.zkhost} -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name, 'conf')} -confname #{new_resource.configset_name} 2>&1"
       action :nothing
       only_if { node['solrcloud']['manage_zkconfigsets'] }
     end
