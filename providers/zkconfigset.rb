@@ -49,20 +49,36 @@ action :create do
       files_mode 0644
       files_owner new_resource.user
       files_group new_resource.group
+
+      # Used to troubleshoot the solr 5.1.0 upgrade
+      ruby_block 'debug solrcloud zk_config_set create action' do
+        block do
+          Chef::Log.warn "new_resource.user: #{new_resource.user}"
+          Chef::Log.warn "new_resource.zkhost: #{new_resource.zkcli}"
+          Chef::Log.warn "new_resource.group: #{new_resource.group}"
+          Chef::Log.warn "new_resource.solr_zkcli: #{new_resource.solr_zkcli}"
+          Chef::Log.warn "new_resource.force_upload: #{new_resource.force_upload}"
+          Chef::Log.warn "new_resource.zkconfigsets_home: #{new_resource.zkconfigsets_home}"
+          Chef::Log.warn "new_resource.manage_zkconfigsets: #{new_resource.manage_zkconfigsets}"
+          Chef::Log.warn "node['solrcloud']['notify_zkconfigsets_upload']: #{node['solrcloud']['notify_zkconfigsets_upload']}"
+          Chef::Log.warn "node['solrcloud']['manage_zkconfigsets_source']: #{node['solrcloud']['manage_zkconfigsets_source']}"
+        end
+      end
+
       notifies :run, "execute[zk_config_set_upconfig_#{new_resource.configset_name}_update_upload]", :immediately if node['solrcloud']['notify_zkconfigsets_upload']
       only_if { node['solrcloud']['manage_zkconfigsets_source'] }
     end
 
     # Upload on any config update
     execute "zk_config_set_upconfig_#{new_resource.configset_name}_update_upload" do
-      command "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh -zkhost #{new_resource.zkhost} -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name)} -confname #{new_resource.configset_name} 2>&1"
+      command "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh -zkhost #{new_resource.zkhost} -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name, 'conf')} -confname #{new_resource.configset_name} 2>&1"
       action :nothing
       only_if { node['solrcloud']['manage_zkconfigsets'] }
     end
 
     # Update if config is not present in zk, like attribute node['solrcloud']['manage_zkconfigsets'] was not during the first chef run
     execute "zk_config_set_upconfig_#{new_resource.configset_name}_missing_upload" do
-      command "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh -zkhost #{new_resource.zkhost} -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name)} -confname #{new_resource.configset_name} 2>&1"
+      command "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh -zkhost #{new_resource.zkhost} -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name, 'conf')} -confname #{new_resource.configset_name} 2>&1"
       action :run
       only_if { node['solrcloud']['manage_zkconfigsets'] && (new_resource.force_upload || !SolrCloud::Zk.new(new_resource.zkhost).configset?(new_resource.configset_name)) }
     end
