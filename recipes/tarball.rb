@@ -153,6 +153,10 @@ end
 
 # Restore Cores after upgrade
 ruby_block 'backup_solr_cores' do
+
+  Chef::Log.warn "node['solrcloud']['restore_cores']: #{node['solrcloud']['restore_cores']}"
+  Chef::Log.warn ("old_source: #{old_source} != node['solrcloud']['source_dir']: #{node['solrcloud']['source_dir']}")
+
   block do
     require 'fileutils'
     Chef::Log.info("Removing Existing Cores under location - #{node['solrcloud']['cores_home']}")
