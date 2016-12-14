@@ -49,6 +49,7 @@ action :create do
 
     ruby_block 'debug solrcloud collection create action' do
       block do
+        Chef::Log.warn "new_resource.context_path: #{new_resource.context_path}"
         Chef::Log.warn "new_resource.name: #{new_resource.name}"
         Chef::Log.warn "new_resource.replication_factor: #{new_resource.replication_factor}"
         Chef::Log.warn "new_resource.zkhost: #{new_resource.zkhost}"
