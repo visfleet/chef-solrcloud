@@ -49,12 +49,15 @@ action :create do
 
     ruby_block 'debug solrcloud collection create action' do
       block do
-        Chef::Log.warn "new_resource.context_path: #{new_resource.context_path}"
-        Chef::Log.warn "new_resource.name: #{new_resource.name}"
-        Chef::Log.warn "new_resource.replication_factor: #{new_resource.replication_factor}"
-        Chef::Log.warn "new_resource.zkhost: #{new_resource.zkhost}"
         Chef::Log.warn "solr_options: #{solr_options}"
         Chef::Log.warn "collection_options: #{collection_options}"
+        Chef::Log.warn "new_resource.port: #{new_resource.port}"
+        Chef::Log.warn "new_resource.host: #{new_resource.host}"
+        Chef::Log.warn "new_resource.name: #{new_resource.name}"
+        Chef::Log.warn "new_resource.zkhost: #{new_resource.zkhost}"
+        Chef::Log.warn "new_resource.shards #{new_resource.shards}"
+        Chef::Log.warn "new_resource.context_path: #{new_resource.context_path}"
+        Chef::Log.warn "new_resource.replication_factor: #{new_resource.replication_factor}"
         Chef::Log.warn "node['solrcloud']['manage_collections']: #{node['solrcloud']['manage_collections']}"
       end
     end
@@ -102,5 +105,4 @@ action :reload do
       only_if { node['solrcloud']['manage_collections'] && SolrCloud::Zk.new(new_resource.zkhost).collection?(new_resource.name) }
     end
   end
-
 end

@@ -60,6 +60,7 @@ action :create do
           Chef::Log.warn "new_resource.force_upload: #{new_resource.force_upload}"
           Chef::Log.warn "new_resource.zkconfigsets_home: #{new_resource.zkconfigsets_home}"
           Chef::Log.warn "new_resource.manage_zkconfigsets: #{new_resource.manage_zkconfigsets}"
+          Chef::Log.warn "node['solrcloud']['zookeeper']['solr_zkcli']: #{node['solrcloud']['zookeeper']['solr_zkcli']}"
           Chef::Log.warn "node['solrcloud']['notify_zkconfigsets_upload']: #{node['solrcloud']['notify_zkconfigsets_upload']}"
           Chef::Log.warn "node['solrcloud']['manage_zkconfigsets_source']: #{node['solrcloud']['manage_zkconfigsets_source']}"
         end
@@ -71,14 +72,18 @@ action :create do
 
     # Upload on any config update
     execute "zk_config_set_upconfig_#{new_resource.configset_name}_update_upload" do
-      command "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh -zkhost #{new_resource.zkhost} -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name, 'conf')} -confname #{new_resource.configset_name} 2>&1"
+      # NOTE Using hardcoded commands until I can workout why the new_resources are not being populated
+      command "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh -zkhost 127.0.0.1:2181 -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name, 'conf')} -confname #{new_resource.configset_name} 2>&1"
+      #command "#{new_resource.solr_zkcli} -zkhost #{new_resource.zkhost} -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name, 'conf')} -confname #{new_resource.configset_name} 2>&1"
       action :nothing
       only_if { node['solrcloud']['manage_zkconfigsets'] }
     end
 
     # Update if config is not present in zk, like attribute node['solrcloud']['manage_zkconfigsets'] was not during the first chef run
     execute "zk_config_set_upconfig_#{new_resource.configset_name}_missing_upload" do
-      command "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh -zkhost #{new_resource.zkhost} -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name, 'conf')} -confname #{new_resource.configset_name} 2>&1"
+      # NOTE Using hardcoded commands until I can workout why the new_resources are not being populated
+      command "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh -zkhost 127.0.0.1:2181 -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name, 'conf')} -confname #{new_resource.configset_name} 2>&1"
+      #command "/usr/local/solr/server/scripts/cloud-scripts/zkcli.sh -zkhost #{new_resource.zkhost} -cmd upconfig -confdir #{::File.join(new_resource.zkconfigsets_home, new_resource.configset_name, 'conf')} -confname #{new_resource.configset_name} 2>&1"
       action :run
       only_if { node['solrcloud']['manage_zkconfigsets'] && (new_resource.force_upload || !SolrCloud::Zk.new(new_resource.zkhost).configset?(new_resource.configset_name)) }
     end

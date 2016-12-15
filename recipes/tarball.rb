@@ -28,19 +28,9 @@ include_recipe 'solrcloud::java'
 %w(patch gcc make).each do |pkg|
   package pkg do
     action :nothing
-# <<<<<<< HEAD
     retries 2
   end.run_action(:install)
 end
-
-#chef_gem 'zk' do
-#  action :nothing
-#  retries 2
-# end.run_action(:install)
-# =======
-#    only_if { node['solrcloud']['install_zk_gem'] }
-#   end.run_action(:install)
-# end
 
  if Chef::Resource::ChefGem.method_defined?(:compile_time)
    chef_gem 'zk' do
@@ -52,7 +42,6 @@ end
      only_if { node['solrcloud']['install_zk_gem'] }
    end.run_action(:install)
  end
-# >>>>>>> upstream/master
 
 require 'zk'
 require 'net/http'
@@ -69,7 +58,7 @@ end
 
 tarball_checksum = solr_tarball_sha256sum(solr_version)
 
-temp_dir      = Dir.tmpdir
+temp_dir    = Dir.tmpdir
 tarball_file  = ::File.join(temp_dir, "solr-#{solr_version}.tgz")
 tarball_dir   = ::File.join(temp_dir, "solr-#{solr_version}")
 
