@@ -192,15 +192,6 @@ ruby_block 'require_pam_limits.so' do
   end
 end
 
-# Solr Config
-include_recipe 'solrcloud::config'
-
-# Jetty Config
-include_recipe 'solrcloud::jetty'
-
-# Zookeeper Client Setup
-include_recipe 'solrcloud::zkcli'
-
 service 'solr' do
   supports :start => true, :stop => true, :restart => true, :status => true
   service_name node['solrcloud']['service_name']
@@ -210,6 +201,7 @@ service 'solr' do
 end
 
 # purge older versions
+# NOTE this needs to be fixed as it doesn't work
 ruby_block 'purge_old_versions' do
   block do
     require 'fileutils'

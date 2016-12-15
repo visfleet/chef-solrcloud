@@ -18,7 +18,6 @@
 #
 
 node['solrcloud']['zkconfigsets'].each do |configset_name, options|
-
   solrcloud_zkconfigset configset_name do
     user options['user']
     group options['group']
@@ -27,8 +26,8 @@ node['solrcloud']['zkconfigsets'].each do |configset_name, options|
     zkconfigsets_home options['zkconfigsets_home']
     zkconfigsets_cookbook options['zkconfigsets_cookbook']
     manage_zkconfigsets options['manage_zkconfigsets']
+    force_upload options['force_upload']
     solr_zkcli options['solr_zkcli']
     action options['action']
   end
-
 end
